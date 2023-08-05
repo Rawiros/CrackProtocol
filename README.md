@@ -5,7 +5,7 @@ A simple, customizable open source server for [Minecraft: Java Edition](https://
 
 <!-- 
     https://gitmoji.dev/
-    https://wiki.vg/Protocol
+    https://wiki.vg/Protocol 
     https://www.markdownguide.org/basic-syntax/
     https://jd.bukkit.org/org/bukkit/entity/Entity.html#getLocation()
     https://jd.bukkit.org/org/bukkit/EntityEffect.html
