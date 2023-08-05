@@ -1,0 +1,39 @@
+{
+  "name": "neutral",
+  "version": "1.0.0",
+  "author": "Rawir",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=16.9.0"
+  },
+  "scripts": {
+    "dev": "nodemon --transpile-only -r tsconfig-paths/register ./start.ts",
+    "start": "ts-node --transpile-only -r tsconfig-paths/register  ./start.ts",
+    "packets": "ts-node --transpile-only -r tsconfig-paths/register  ./src/tests/function_generator.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rawiros/Arcadius.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Rawiros/Arcadius/issues"
+  },
+  "dependencies": {
+    "minecraft-data": "^3.38.0",
+    "minecraft-protocol": "^1.43.1",
+    "prismarine-block": "^1.16.3",
+    "prismarine-chunk": "^1.33.1",
+    "prismarine-item": "^1.12.2",
+    "prismarine-provider-anvil": "^2.7.0",
+    "prismarine-registry": "^1.7.0",
+    "prismarine-windows": "^2.6.1",
+    "vec3": "^0.1.8"
+  },
+  "devDependencies": {
+    "@types/node": "^18.16.18",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^4.9.5"
+  }
+}
