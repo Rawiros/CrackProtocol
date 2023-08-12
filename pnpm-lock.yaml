@@ -34,7 +34,7 @@ dependencies:
     version: 3.3.4
   utility:
     specifier: github:Rawiros/utility
-    version: github.com/Rawiros/utility/8ffcb5f872135658bfa71b0c248571d377a38628
+    version: github.com/Rawiros/utility/e2ed363a8b99f60473bc5208d7c0dc82be70889d
   vec3:
     specifier: ^0.1.8
     version: 0.1.8
@@ -779,8 +779,8 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  github.com/Rawiros/utility/8ffcb5f872135658bfa71b0c248571d377a38628:
-    resolution: {tarball: https://codeload.github.com/Rawiros/utility/tar.gz/8ffcb5f872135658bfa71b0c248571d377a38628}
+  github.com/Rawiros/utility/e2ed363a8b99f60473bc5208d7c0dc82be70889d:
+    resolution: {tarball: https://codeload.github.com/Rawiros/utility/tar.gz/e2ed363a8b99f60473bc5208d7c0dc82be70889d}
     name: utility
-    version: 1.0.4
+    version: 1.0.5
     dev: false

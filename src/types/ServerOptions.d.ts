@@ -10,6 +10,8 @@ type ServerOptions = Protocol.ServerOptions & {
      * Save modified chunks when chunk is unloading, true by default
      */
     'save-chunks'?: boolean
+
+    'default-world': string
 };
 
 export default ServerOptions;
