@@ -11,7 +11,8 @@ export type BossBarAddData = BossBarData & {
     color: number;
     dividers: number;
     flags: number;
-    title: string;
+    // title: string;
+    title: any;
 };
 
 export type BossBarRemoveData = BossBarData & {
@@ -25,7 +26,8 @@ export type BossBarUpdateHealthData = BossBarData & {
 
 export type BossBarUpdateTitleData = BossBarData & {
     action: BossBarAction.UpdateTitle;
-    title: string;
+    // title: string;
+    title: any;
 };
 
 export type BossBarUpdateStyleData = BossBarData & {

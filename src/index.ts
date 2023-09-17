@@ -1,90 +1,32 @@
-import { existsSync, readFileSync, writeFileSync } from "fs";
-import path from "path";
-
-(function patchModule() {
-    const rule = /(var|let) nextId.{0,10}\d+/i;
-    const rule2 = /=.{0,10}nextId\+\+/i;
-    const modulePath = require.resolve("minecraft-protocol");
-
-    const serverFile = path.join(modulePath || "unknown", "..", "server.js");
-
-    if (!existsSync(serverFile))
-        return;
-
-    const content = readFileSync(serverFile, "utf8");
-    const matched = content.match(rule);
-
-    if (!matched)
-        return;
-
-    const patched = content.replace(rule, "self.nextId = 0;").replace(rule2, "= self.nextId++;");
-
-    writeFileSync(serverFile, patched);
-
-})();
-
 import 'utility';
-import { readdirSync } from "fs";
-import Protocol from "minecraft-protocol";
-import World from "./lib/world/World";
-import { ServerSocket, ServerOptions, PacketHandleFunc } from "./types"
+import path from 'path';
+import './lib/util/patching';
+import { readdirSync } from 'fs';
+import { Vec3 } from 'vec3';
+import Protocol from 'minecraft-protocol';
+// import World from './lib/world/World';
+import ChunkInit, { Chunk, TChunk } from './lib/World/Chunk';
 import Player from './lib/entity/Player';
-import { Logger } from 'tslog';
-import ChunkInit, { Chunk } from "./lib/world/Chunk";
-import os from 'os';
-import { Vec3 } from "vec3";
-
-interface MemoryUsage {
-    percentage: number;
-    value: number;
-}
-
-function getHeapMemoryUsage(): MemoryUsage {
-    const memoryUsage = process.memoryUsage();
-    const totalMemory = os.totalmem();
-
-    const heapUsed = memoryUsage.heapUsed;
-    const percentage = heapUsed / totalMemory;
-
-    return {
-        percentage,
-        value: percentage * 100, // Convert to percentage (0 to 100)
-    };
-}
-
-new Logger({
-    name: "Server",
-    displayLoggerName: false,
-    overwriteConsole: true,
-    displayFilePath: "hidden",
-    displayDateTime: true,
-    dateTimePattern: "hour:minute:second.millisecond",
-    displayFunctionName: false,
-});
-
-console.log = console.info;
+import { ServerSocket, ServerOptions, PacketHandleFunc, WritePacketOptions } from './types';
 
 class CrackServer {
-    _socket: ServerSocket;
-    events = new Map<string, Set<PacketHandleFunc>>();
+    private _socket: ServerSocket;
+    private _startTime: number;
 
     options: ServerOptions;
+    events = new Map<string, Set<PacketHandleFunc>>();
     players = new Map<string, Player>();
-    worlds = new Map<string, World>;
-    Chunk: Chunk
-
-    startTime: number;
+    worlds = new Map<string, any>;
 
     get version() { return this._socket.version; };
+    get startTime() { return this._startTime; };
+    get Chunk(): Chunk { return null }
 
     constructor(options: ServerOptions) {
-        const startTime = this.startTime = Date.now();
-        const socket = (this._socket = Protocol.createServer(this.options = options), this._socket);
+        this._startTime = Date.now();
+        this._socket = Protocol.createServer(this.options = options);
 
-        // setInterval(() => console.log("Proc Title ->", process.title), 1500);
-        // setInterval(() => console.log(Object.keys(socket.clients)), 1500);
-
-        this._initialize();
+        this.initialize();
         this._registerPacketHandler();
         this._registerEvents();
 
@@ -92,30 +34,30 @@ class CrackServer {
         console.log(this.toString());
     };
 
+    private initialize() {
+        const Home = path.join(__dirname, "..");
+        const Worlds = path.join(Home, "worlds");
+
+        // this.Chunk = ChunkInit(this.version);
+
+        // for (const worldname of readdirSync(Worlds)) {
+        //     const world_dir = path.join(Worlds, worldname);
+        //     const world = new World(this, world_dir)
+
+        //     this.worlds.set(worldname, world);
+
+        //     console.log(`Loaded world named "${world.level.name}" from the "${world_dir}" path`);
+        // };
+
+        console.info("CrackProtocol Server Initialized!");
+        console.log("Server found", this.worlds.size, "worlds and loaded them");
+    };
+
     on(name: string, func: PacketHandleFunc) {
         if (!this.events.has(name))
             this.events.set(name, new Set());
 
         this.events.get(name).add(func);
-    };
-
-    private _initialize() {
-        const Home = path.join(__dirname, "..");
-        const Worlds = path.join(Home, "worlds");
-
-        this.Chunk = ChunkInit(this.version);
-
-        for (const worldName of readdirSync(Worlds)) {
-            const worldDir = path.join(Worlds, worldName);
-            const world = new World(this, worldDir)
-
-            this.worlds.set(worldName, world);
-
-            console.log(`Loaded world named "${world.level.name}" from the "${worldDir}" path`);
-        };
-
-        console.info("CrackProtocol Server Initialized!");
-        console.log("Server found", this.worlds.size, "worlds and loaded them");
     };
 
     private _registerPacketHandler() {
@@ -139,10 +81,11 @@ class CrackServer {
     };
 
     private _registerEvents() {
+        // listen for settings change
         this.on("settings", (player, data) => player.settings = data);
 
         this.on("block_place", (player, data) => {
-            const pos = new Vec3(data.location.x, data.location. y, data.location.z);
+            const pos = new Vec3(data.location.x, data.location.y, data.location.z);
 
             const chunk = player.chunk;
             if (!chunk) return;
@@ -154,16 +97,16 @@ class CrackServer {
             player.message(`§4[!] §7Block at §b${pos.toString()} §7is §b${block.displayName} §b(${block.name}) §7State Id §b${block.stateId} §7Metdata §b${block.metadata}`);
         })
 
+        // Listen to packet which is sent by client when player is flying
         this.on("flying", (player, { onGround }) => player.onGround = onGround);
 
+        // Listen for player's position change
         this.on("position", (player, { x, y, z, onGround }) => {
             player['_position'].set(x, y, z);
             player.onGround = onGround;
-
-            // const block = player.chunk.getBlock(player.position);
-            // process.title = `${player.position.floored().toString()} - ${block.displayName} (${block.name})`;
         });
 
+        // Listen for player's position change and head rotation change
         this.on("position_look", (player, { x, y, z, onGround, pitch, yaw }) => {
             player['_position'].set(x, y, z);
             player['_yaw'] = Math.toByte(yaw);
@@ -172,6 +115,7 @@ class CrackServer {
             player.onGround = onGround;
         });
 
+        // Listen just for player's head rotation change
         this.on("look", (player, { pitch, yaw, onGround }) => {
             player['_yaw'] = Math.toByte(yaw);
             player['_pitch'] = Math.toByte(pitch);
@@ -181,6 +125,8 @@ class CrackServer {
 
         console.info("Registeried Default Player Events");
     };
+
+    all(options: WritePacketOptions) { this._socket.writeToClients(Object.values(this._socket.clients), options.name, options.data); };
 
     toString() {
         return `CrackServer{PID=${process.pid};VERSION=${this.version};WORLDS=${Array.from(this.worlds.keys()).join(",")}}`

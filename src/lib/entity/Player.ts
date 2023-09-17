@@ -1,25 +1,27 @@
-import { ServerClient, PlayerSettings } from "../../types";
+import { ServerClient, PlayerSettings, BossBarAddData, BossBarUpdateStyleData, WritePacketOptions } from "../../types";
 import { Vec3 } from "vec3";
 import CrackServer, { BossBarAction } from ".././../index";
 import Entity from "./Entity";
+import crypto from 'crypto';
 import Tags from "../packets/Tags";
 import Login from "../packets/Login";
-import DataBossbar, { BossBarAddData, BossBarUpdateStyleData } from "src/types/DataBossbar";
-
-type WritePacketOptions = {
-    name: string,
-    data: any
-}
 
 export default class Player extends Entity {
     socket: ServerClient;
     settings: PlayerSettings
+
+    private _abilities = {
+        flags: 13,
+        flyingSpeed: 0.05000000074505806,
+        walkingSpeed: 0.10000000149011612
+    };
 
     constructor(server: CrackServer, client: ServerClient) {
         super(server);
 
         this.socket = client;
 
+        this['entityId'] = this.socket.id;
         this['_uuid'] = this.socket.uuid;
         this['_world'] = server.options["default-world"];
     };
@@ -30,6 +32,19 @@ export default class Player extends Entity {
     get profile() { return this.socket.profile; };
     get protocolVersion() { return this.socket.protocolVersion };
     set worldName(value: string) { this.respawn(this['_world'] = value); };
+
+    abilities = new Proxy(this._abilities, {
+        set: (target, property, value) => {
+            this.write({
+                name: "abilities",
+                data: Object.assign(target, {
+                    [property]: value
+                })
+            });
+
+            return true
+        }
+    });
 
     /**
      * Send everything to player what is required to start rendering world client side
@@ -102,6 +117,26 @@ export default class Player extends Entity {
                 action: 63,
                 data: [
                     {
+                        uuid: crypto.randomUUID(),
+                        player: {
+                            name: `Node.JS ${process.version}`,
+                            properties: []
+                        },
+                        gamemode: 3,
+                        listed: true,
+                        latency: -1
+                    },
+                    {
+                        uuid: crypto.randomUUID(),
+                        player: {
+                            name: `Id ${this.entityId}`,
+                            properties: []
+                        },
+                        gamemode: 3,
+                        listed: true,
+                        latency: -1
+                    },
+                    {
                         uuid: this.UUID,
                         player: {
                             name: this.username,
@@ -123,12 +158,30 @@ export default class Player extends Entity {
             }
         });
 
-        for (const chunk of Array.from(this.world.regions.get("0,0").chunks.values()))
-            this.write({
-                name: "map_chunk",
-                data: chunk.asPacket
-            });
 
+        // for (const Reg of Array.from(this.world.chunks.keys()))
+        //     for (const chunk of Array.from(this.world.chunks.get(Reg).chunks.values()))
+        //         this.write({
+        //             name: "map_chunk",
+        //             data: chunk.asPacket
+        //         });
+
+        const UUID = this.createNewBossBar({
+            color: 0,
+            dividers: 4,
+            flags: 0,
+            health: 1,
+            title: {
+                text: `§4§kkk§7 Witaj na serwerze, §c${this.username}§6! §4§kkkk`
+            }
+        });
+
+        console.log("BossBar for", this.username, "with UUID", UUID);
+
+        // setInterval(() => this.updateBossBarStyle(UUID, {
+        //     dividers: 4,
+        //     color: Math.floor(Math.random() * 8)
+        // }), 1200)
         // for (let x = -8; x < 8; x++)
         //     for (let z = -8; z < 8; z++)
         //         this.write({
@@ -181,7 +234,7 @@ export default class Player extends Entity {
     };
 
     setPosition(pos: Vec3) {
-        this['_position'].set(pos.x, pos.y, pos.z);
+        super.setPosition(pos);
 
         this.write({
             name: "position",
@@ -194,8 +247,6 @@ export default class Player extends Entity {
                 dismountVehicle: false
             }
         });
-
-        super.setPosition(pos);
     };
 
     setLook(yaw: number = this['_yaw'], pitch: number = this['_pitch']) {
@@ -234,6 +285,7 @@ export default class Player extends Entity {
                 ...barData,
                 action: BossBarAction.Add,
                 entityUUID: barUUID,
+                title: JSON.stringify(barData.title)
             },
         });
 
@@ -275,13 +327,13 @@ export default class Player extends Entity {
      * @param barUUID - The UUID of the Boss Bar to be updated.
      * @param title - The new title for the Boss Bar.
      */
-    updateBossBarTitle(barUUID: string, title: string): void {
+    updateBossBarTitle(barUUID: string, title: any): void {
         this.write({
             name: "boss_bar",
             data: {
                 action: BossBarAction.UpdateTitle,
                 entityUUID: barUUID,
-                title,
+                title: JSON.stringify(title)
             },
         });
     };

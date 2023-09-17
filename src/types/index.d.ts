@@ -4,5 +4,6 @@ export {default as ServerClient} from "./ServerClient";
 export { default as ServerSocket } from './ServerSocket';
 export {default as PlayerSettings} from './PlayerSettings';
 export { default as ServerOptions } from './ServerOptions';
+export { default as WritePacketOptions } from './WritePacketOptions';
 export { default as PacketHandleFunc } from './PacketHandleFunc';
 export * from './DataBossbar';

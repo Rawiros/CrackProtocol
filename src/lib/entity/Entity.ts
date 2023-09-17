@@ -16,32 +16,31 @@ type WriteNearOptions = {
 
 export default class Entity {
     constructor(server: CrackServer) {
-        this.server = server;
+        Object.defineProperty(this, "server", { get() { return server } });
 
-        if (!this.server._socket.clients[this.server._socket.nextId - 1])
-            this.entityId = server._socket.nextId++;
+        if (server['_socket'].clients[this.server['_socket'].nextId - 1])
+            this.entityId = server['_socket'].nextId++;
 
-
-        this._world = server.options["default-world"];
         this._uuid = randomUUID();
+        this._world = server.options["default-world"];
     };
 
     type: EntityType = EntityType.Entity;
-    entityId: number;
     server: CrackServer;
+    entityId: number;
 
     onGround: boolean = true;
     private _uuid: string;
     private _health: number = 20;
     private _position: Vec3 = new Vec3(0, 0, 0);
     private _velocity: Vec3 = new Vec3(0, 0, 0);
+    private _size = { width: 1, height: 1.8 };
     private _pitch: number = 0;
     private _yaw: number = 0;
     private _food: number = 20;
     private _foodSaturation: number = 5;
     private _world: string;
 
-    size = { width: 1, height: 1.8 };
 
     get UUID() { return this._uuid }
 
@@ -51,8 +50,9 @@ export default class Entity {
     set velocity(value: Vec3) { this._velocity.set(value.x, value.y, value.z) }
     get velocity() { return this._velocity };
 
-    get width() { return this.size.width };
-    get height() { return this.size.height };
+    get size() { return this._size }
+    get width() { return this._size.width };
+    get height() { return this._size.height };
 
     get health() { return this._health };
     get food() { return this._food };
@@ -104,14 +104,7 @@ export default class Entity {
         };
     };
 
-    setHealth(health: number = this['_health'], food: number = this._food, foodSaturation: number = this._foodSaturation) {
-        // if (this instanceof Player)
-        //     this.writePacket('update_health', {
-        //         health: this._health = health,
-        //         food: this._food = food,
-        //         foodSaturation: this._foodSaturation = foodSaturation
-        //     });
-    };
+    setHealth(health: number = this['_health'], food: number = this._food, foodSaturation: number = this._foodSaturation) { };
 
     setLook(yaw: number = this._yaw, pitch: number = this._pitch) {
         if (this._yaw !== yaw)
@@ -168,7 +161,7 @@ export default class Entity {
         if (!options?.radius)
             options.radius = 8;
 
-        const region = this.server.worlds.get(this._world).getRegion(this.regionX, this.regionZ)
+        const region = this.world
 
         if (!region)
             return;
@@ -178,9 +171,9 @@ export default class Entity {
         if (!chunk)
             return;
 
-        Array.from(chunk.players.values())
-            .filter(e => e['_position'].distanceTo(this._position) <= options.radius && (!!options?.include || e.UUID !== this.UUID))
-            .forEach(e => e.write({ name: options.name, data: options.data }));
+        // Array.from(chunk.players.values())
+        //     .filter(e => e['_position'].distanceTo(this._position) <= options.radius && (!!options?.include || e.UUID !== this.UUID))
+        //     .forEach(e => e.write({ name: options.name, data: options.data }));
     };
 
     toString() { return `Entity{TYPE=${this.type};UUID=${this.UUID}}` };
