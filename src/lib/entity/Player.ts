@@ -1,4 +1,4 @@
-import { ServerClient, PlayerSettings, BossBarAddData, BossBarUpdateStyleData, WritePacketOptions } from "../../types";
+import type { ServerClient, PlayerSettings, BossBarAddData, BossBarUpdateStyleData, WritePacketOptions } from "../../types";
 import { Vec3 } from "vec3";
 import CrackServer, { BossBarAction } from ".././../index";
 import Entity from "./Entity";

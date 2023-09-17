@@ -1,13 +1,13 @@
 import type { ChunkState } from '../../types';
 import type { PCChunk } from "prismarine-chunk";
+import type { Block } from 'prismarine-block';
 import type Entity from '../entity/Entity';
 import type Player from '../entity/Player';
+import type CrackServer from "../../index";
 import type { Vec3 } from 'vec3';
-import type { Block } from 'prismarine-block';
 import type World from './World';
 import path from "path";
 import { writeFileSync } from 'fs';
-import CrackServer from 'src';
 
 const ChunkConstructors = new Map<string, Chunk>();
 const fromBuffer = value => Array.isArray(value) ? value.map(e => Array.from(e)) : void 0;
