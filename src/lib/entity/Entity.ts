@@ -40,7 +40,7 @@ export default class Entity {
     private _food: number = 20;
     private _foodSaturation: number = 5;
     private _world: string;
-
+    private _heldItemSlot: number = 0;
 
     get UUID() { return this._uuid }
 
@@ -61,6 +61,8 @@ export default class Entity {
     set health(value: number) { this.setHealth(value) };
     set food(value: number) { this.setHealth(this._health, value) };
     set foodSaturation(value: number) { this.setHealth(this._health, this._food, value) };
+
+    get heldItemSlot() { return this._heldItemSlot };
 
     set pitch(value: number) { this.setLook(value, this._yaw) };
     set yaw(value: number) { this.setLook(this._pitch, value) };
@@ -123,6 +125,8 @@ export default class Entity {
             }
         });
     };
+
+    setHeldItemSlot(slot: number) { }
 
     setPosition(pos: Vec3) {
         this._position.set(pos.x, pos.y, pos.z);

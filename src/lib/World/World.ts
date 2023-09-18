@@ -4,13 +4,13 @@ import type { LevelData } from "src/types";
 import type { Block } from 'prismarine-block';
 import type { TChunk } from "./Chunk";
 import type { Vec3 } from "vec3";
+import { readdirSync } from "fs";
 
 export default class World {
     readonly server: CrackServer
     readonly level: LevelData
     readonly name: string;
     readonly chunks = new Map<string, TChunk>;
-
     readonly chunksDir: string;
 
     constructor(server: CrackServer, worldDir: string) {
@@ -24,10 +24,14 @@ export default class World {
             chunksDir: { get() { return chunksDir } }
         });
 
-        // const regions = fs.readdirSync(path.join(worldDir, "regions")).map(e => e.split(",").map(parseFloat));
+        const chunks = readdirSync(chunksDir).map(e => Array.from(e.match(/-?\d+(\.\d+)?/g)).map(parseFloat));
 
-        // for (const [x, z] of regions)
-        // this.regions.set(`${x},${z}`, new Region(server, world_dir, x, z));
+        for (const [x, z] of chunks) {
+            const column = new this.server.Chunk(this, server, x, z);
+
+            this.chunks.set(`${x},${z}`, column);
+            column.load();
+        };
     };
 
     getChunk(x: number, z: number): TChunk { return this.chunks.get(`${x},${z}`) };
@@ -43,5 +47,5 @@ export default class World {
     save() {
         for (const chunk of Array.from(this.chunks.values()))
             chunk.save();
-    }
+    };
 };

@@ -61,24 +61,24 @@ const getConstructor = (version: string) => {
         readonly players = new Map<string, Player>;
         readonly entities = new Map<string, Entity>;
 
-        getBlockStateId(pos: Vec3) { return super.getBlockStateId(adjustChunkPos(pos)); }
-        getBlockType(pos: Vec3) { return super.getBlockType(adjustChunkPos(pos)); }
-        getBlockData(pos: Vec3) { return super.getBlockData(adjustChunkPos(pos)); }
-        getBlockLight(pos: Vec3) { return super.getBlockLight(adjustChunkPos(pos)); }
-        getSkyLight(pos: Vec3) { return super.getSkyLight(adjustChunkPos(pos)); }
-        getBiome(pos: Vec3) { return super.getBiome(adjustChunkPos(pos)); }
+        getBlockStateId(pos: Vec3) { return super.getBlockStateId(adjustChunkPos(pos)) }
+        getBlockType(pos: Vec3) { return super.getBlockType(adjustChunkPos(pos)) }
+        getBlockData(pos: Vec3) { return super.getBlockData(adjustChunkPos(pos)) }
+        getBlockLight(pos: Vec3) { return super.getBlockLight(adjustChunkPos(pos)) }
+        getSkyLight(pos: Vec3) { return super.getSkyLight(adjustChunkPos(pos)) }
+        getBiome(pos: Vec3) { return super.getBiome(adjustChunkPos(pos)) }
 
-        setBiome(pos: Vec3, biome: number) { super.setBiome(adjustChunkPos(pos), biome); }
-        setBlock(pos: Vec3, block: Block) { super.setBlock(adjustChunkPos(pos), block); };
-        setBlockStateId(pos: Vec3, stateId: number) { return super.setBlockStateId(adjustChunkPos(pos), stateId); }
-        setBlockType(pos: Vec3, id: number) { super.setBlockType(adjustChunkPos(pos), id); }
-        setBlockData(pos: Vec3, data: Buffer) { super.setBlockData(adjustChunkPos(pos), data); }
-        setBlockLight(pos: Vec3, light: number) { super.setBlockLight(adjustChunkPos(pos), light); }
-        setSkyLight(pos: Vec3, light: number) { super.setSkyLight(adjustChunkPos(pos), light); }
+        setBiome(pos: Vec3, biome: number) { super.setBiome(adjustChunkPos(pos), biome) }
+        setBlock(pos: Vec3, block: Block) { super.setBlock(adjustChunkPos(pos), block) }
+        setBlockStateId(pos: Vec3, stateId: number) { return super.setBlockStateId(adjustChunkPos(pos), stateId) }
+        setBlockType(pos: Vec3, id: number) { super.setBlockType(adjustChunkPos(pos), id) }
+        setBlockData(pos: Vec3, data: Buffer) { super.setBlockData(adjustChunkPos(pos), data) }
+        setBlockLight(pos: Vec3, light: number) { super.setBlockLight(adjustChunkPos(pos), light) }
+        setSkyLight(pos: Vec3, light: number) { super.setSkyLight(adjustChunkPos(pos), light) }
 
-        get isLoaded() { return this._state === "loaded"; };
-        get isLoading() { return this._state === "loading"; };
-        get isUnloaded() { return this._state === "unloaded"; };
+        get isLoaded() { return this._state === "loaded" }
+        get isLoading() { return this._state === "loading" }
+        get isUnloaded() { return this._state === "unloaded" };
 
         get asPacket() {
             const lights = this.dumpLight() as any;
@@ -110,42 +110,51 @@ const getConstructor = (version: string) => {
         };
 
         load(): void {
-            if (this._state === "loaded")
+            if (this.isLoaded)
                 return;
 
             const data = require(this.chunkPath);
 
             if (!data.bitMap && data.groundUp)
                 return;
+
             try {
                 super.load(Buffer.from(data.chunkData.data), data.bitMap, true, data.groundUp);
 
                 if (data.loadBiomes)
-                    this.loadBiomes(data.biomes);
+                    super.loadBiomes(data.biomes);
 
-                if (data.skyLight)
-                    this.loadLightParse(data.skyLight, data.blockLight, data.skyLightMask, data.blockLightMask, data.emptySkyLightMask, data.emptyBlockLightMask);
+                if (data.skyLight) // @ts-ignore
+                    super.loadParsedLight(data.skyLight, data.blockLight, data.skyLightMask, data.blockLightMask, data.emptySkyLightMask, data.emptyBlockLightMask);
             } catch (err) {
                 console.error("Error during loading chunk x:", data.x, "z:", data.z, "/", "error:", err);
             };
-        }
-        unload(): void {
-            if (this._state !== "loaded")
+        };
+
+        unload(): boolean {
+            if (!this.isLoaded)
                 return;
 
             this._state = "unloaded";
 
-            this.save();
+            try {
+                this.save();
 
-            delete this['biome'];
-            delete this['sections'];
-            delete this['skyLightSent'];
-        }
+                delete this['biome'];
+                delete this['sections'];
+                delete this['skyLightSent'];
+            } catch {
+                return false;
+            } finally {
+                return true;
+            };
+        };
+
         save(): void {
-            if (this._state !== "loaded")
+            if (!this.isLoaded)
                 return;
 
-            writeFileSync(this.chunkPath, JSON.stringify(this.asPacket), "utf-8")
+            writeFileSync(this.chunkPath, JSON.stringify(this.asPacket), "utf-8");
         };
     };
 }

@@ -1,56 +1,56 @@
 import 'utility';
 import path from 'path';
 import './lib/util/patching';
-import { readdirSync } from 'fs';
 import { Vec3 } from 'vec3';
 import Protocol from 'minecraft-protocol';
-// import World from './lib/world/World';
-import ChunkInit, { Chunk, TChunk } from './lib/World/Chunk';
+import ChunkInitialization, { Chunk, TChunk } from './lib/World/Chunk';
 import Player from './lib/entity/Player';
 import { ServerSocket, ServerOptions, PacketHandleFunc, WritePacketOptions } from './types';
+import { World } from './lib/World';
+import { readdirSync } from 'fs';
 
 class CrackServer {
     private _socket: ServerSocket;
     private _startTime: number;
+    private _chunk: Chunk;
+    private _options: ServerOptions;
 
-    options: ServerOptions;
     events = new Map<string, Set<PacketHandleFunc>>();
-    players = new Map<string, Player>();
-    worlds = new Map<string, any>;
 
-    get version() { return this._socket.version; };
-    get startTime() { return this._startTime; };
-    get Chunk(): Chunk { return null }
+    readonly players = new Map<string, Player>();
+    readonly worlds = new Map<string, World>;
+
+    get version() { return this._socket.version }
+    get startTime() { return this._startTime }
+    get Chunk(): Chunk { return this._chunk }
+    get options() { return this._options }
 
     constructor(options: ServerOptions) {
         this._startTime = Date.now();
-        this._socket = Protocol.createServer(this.options = options);
+        this._socket = Protocol.createServer(this._options = options);
+        this._chunk = ChunkInitialization(this.version);
 
         this.initialize();
-        this._registerPacketHandler();
-        this._registerEvents();
+        this.registerPacketHandler();
+        this.registerEvents();
 
         console.log("CrackProtocol is now ready, everything took", process.uptime().toFixed(2), "s");
-        console.log(this.toString());
     };
 
     private initialize() {
-        const Home = path.join(__dirname, "..");
-        const Worlds = path.join(Home, "worlds");
+        const worldsDir = path.join(__dirname, "../worlds");
+        const worlds = readdirSync(worldsDir);
 
-        // this.Chunk = ChunkInit(this.version);
+        for (const folderDir of worlds) {
+            const worldDir = path.join(worldsDir, folderDir);
+            const world = new World(this, worldDir);
 
-        // for (const worldname of readdirSync(Worlds)) {
-        //     const world_dir = path.join(Worlds, worldname);
-        //     const world = new World(this, world_dir)
+            this.worlds.set(folderDir, world);
+            console.log("Loaded world", worldDir);
+        };
 
-        //     this.worlds.set(worldname, world);
-
-        //     console.log(`Loaded world named "${world.level.name}" from the "${world_dir}" path`);
-        // };
-
+        console.log("Server loaded", this.worlds.size, "worlds");
         console.info("CrackProtocol Server Initialized!");
-        console.log("Server found", this.worlds.size, "worlds and loaded them");
     };
 
     on(name: string, func: PacketHandleFunc) {
@@ -60,7 +60,7 @@ class CrackServer {
         this.events.get(name).add(func);
     };
 
-    private _registerPacketHandler() {
+    private registerPacketHandler() {
         const handlePlayerPacket = (client: Protocol.ServerClient) => {
             const plr = this.players.set(client.uuid, new Player(this, client as any)).get(client.uuid);
 
@@ -80,18 +80,22 @@ class CrackServer {
         console.info("Registeried CrackProtocol Packet Handler");
     };
 
-    private _registerEvents() {
+    private registerEvents() {
         // listen for settings change
-        this.on("settings", (player, data) => player.settings = data);
+        this.on("settings", (player, data) => player['_settings'] = data);
 
         this.on("block_place", (player, data) => {
             const pos = new Vec3(data.location.x, data.location.y, data.location.z);
 
             const chunk = player.chunk;
-            if (!chunk) return;
+
+            if (!chunk)
+                return;
 
             const block = chunk.getBlock(pos);
-            if (!block) return;
+
+            if (!block)
+                return;
 
             console.log("Block Place Packet", data);
             player.message(`§4[!] §7Block at §b${pos.toString()} §7is §b${block.displayName} §b(${block.name}) §7State Id §b${block.stateId} §7Metdata §b${block.metadata}`);

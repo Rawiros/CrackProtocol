@@ -5,4 +5,3 @@ const e = new CrackServer({
     version: "1.19.3",
     "default-world": "7-tcp-eu-ngrok-io"
 });
-

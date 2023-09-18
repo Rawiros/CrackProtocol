@@ -7,8 +7,8 @@ import Tags from "../packets/Tags";
 import Login from "../packets/Login";
 
 export default class Player extends Entity {
-    socket: ServerClient;
-    settings: PlayerSettings
+    readonly socket: ServerClient;
+    private _settings: PlayerSettings
 
     private _abilities = {
         flags: 13,
@@ -19,19 +19,23 @@ export default class Player extends Entity {
     constructor(server: CrackServer, client: ServerClient) {
         super(server);
 
-        this.socket = client;
+        Object.defineProperties(this, {
+            socket: { get() { return client } },
+            entityId: { get() { return this.socket.id } },
+        });
 
-        this['entityId'] = this.socket.id;
         this['_uuid'] = this.socket.uuid;
         this['_world'] = server.options["default-world"];
     };
 
-    get latency() { return this.socket.latency; };
-    get username() { return this.socket.username; };
-    get version() { return this.socket.version; };
-    get profile() { return this.socket.profile; };
+    get latency() { return this.socket.latency }
+    get username() { return this.socket.username }
+    get version() { return this.socket.version }
+    get profile() { return this.socket.profile }
+    get settings() { return this._settings }
     get protocolVersion() { return this.socket.protocolVersion };
     set worldName(value: string) { this.respawn(this['_world'] = value); };
+    set heldItemSlot(slot: number) { this.setHeldItemSlot(slot) };
 
     abilities = new Proxy(this._abilities, {
         set: (target, property, value) => {
@@ -45,6 +49,13 @@ export default class Player extends Entity {
             return true
         }
     });
+
+    setHeldItemSlot(slot: number) {
+        this.write({
+            name: "held_item_slot",
+            data: { slot }
+        });
+    };
 
     /**
      * Send everything to player what is required to start rendering world client side
@@ -82,21 +93,9 @@ export default class Player extends Entity {
             }
         });
 
-        this.write({
-            name: "abilities",
-            data: {
-                flags: 13,
-                flyingSpeed: 0.05000000074505806,
-                walkingSpeed: 0.10000000149011612
-            }
-        });
-
-        this.write({
-            name: "held_item_slot",
-            data: {
-                slot: 0
-            }
-        });
+        // force to send
+        this.abilities.flags = this._abilities.flags;
+        this.heldItemSlot = 0;
 
         this.write({
             name: "tags",
@@ -158,13 +157,15 @@ export default class Player extends Entity {
             }
         });
 
+        for (const chunk of Array.from(world.chunks.values())) {
+            if (chunk.isUnloaded)
+                chunk.load();
 
-        // for (const Reg of Array.from(this.world.chunks.keys()))
-        //     for (const chunk of Array.from(this.world.chunks.get(Reg).chunks.values()))
-        //         this.write({
-        //             name: "map_chunk",
-        //             data: chunk.asPacket
-        //         });
+            this.write({
+                name: "map_chunk",
+                data: chunk.asPacket
+            });
+        };
 
         const UUID = this.createNewBossBar({
             color: 0,
