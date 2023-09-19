@@ -7,7 +7,8 @@ type LevelData = {
     difficulty: number,
     worldType: string,
     worldName: string,
-    hashedSeed: [number, number]
+    hashedSeed: [number, number],
+    readonly?: boolean
 }
 
 export default LevelData;

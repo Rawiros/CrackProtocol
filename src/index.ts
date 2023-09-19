@@ -87,7 +87,7 @@ class CrackServer {
         this.on("block_place", (player, data) => {
             const pos = new Vec3(data.location.x, data.location.y, data.location.z);
 
-            const chunk = player.chunk;
+            const chunk = player.world.getChunkFromPosition(pos);
 
             if (!chunk)
                 return;

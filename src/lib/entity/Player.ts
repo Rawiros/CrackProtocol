@@ -35,7 +35,7 @@ export default class Player extends Entity {
     get settings() { return this._settings }
     get protocolVersion() { return this.socket.protocolVersion };
     set worldName(value: string) { this.respawn(this['_world'] = value); };
-    set heldItemSlot(slot: number) { this.setHeldItemSlot(slot) };
+    set heldItemSlot(slot: number) { this.setHeldItemSlot(slot); super.setHeldItemSlot(slot) };
 
     abilities = new Proxy(this._abilities, {
         set: (target, property, value) => {

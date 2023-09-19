@@ -47,7 +47,7 @@ export default class Entity {
     set position(value: Vec3) { this.setPosition(value) }
     get position() { return this._position };
 
-    set velocity(value: Vec3) { this._velocity.set(value.x, value.y, value.z) }
+    set velocity(value: Vec3) { this.setVelocity(value) }
     get velocity() { return this._velocity };
 
     get size() { return this._size }
@@ -128,6 +128,17 @@ export default class Entity {
 
     setHeldItemSlot(slot: number) { }
 
+    isInsideBoundingBox(minCorner: Vec3, maxCorner: Vec3): boolean {
+        return (
+            this._position.x >= minCorner.x &&
+            this._position.x <= maxCorner.x &&
+            this._position.y >= minCorner.y &&
+            this._position.y <= maxCorner.y &&
+            this._position.z >= minCorner.z &&
+            this._position.z <= maxCorner.z
+        );
+    };
+
     setPosition(pos: Vec3) {
         this._position.set(pos.x, pos.y, pos.z);
 
@@ -141,6 +152,23 @@ export default class Entity {
                 ...this._position
             }
         });
+    };
+
+    setVelocity(velocity: Vec3) {
+        this._velocity.set(velocity.x, velocity.y, velocity.z);
+
+        this.writeNear({
+            name: "entity_velocity",
+            data: {
+                entityId: this.entityId,
+                velocityX: this._velocity.x,
+                velocityY: this._velocity.y,
+                velocityZ: this._velocity.z
+            }
+        });
+
+        // idk
+        // this._velocity.set(0, 0, 0);
     };
 
     playSoundNear(soundName: string, soundCategory: 0 = 0, volume = 1, pitch = 1) {
