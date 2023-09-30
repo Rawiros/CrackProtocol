@@ -5,6 +5,7 @@ import type { Block } from 'prismarine-block';
 import type { TChunk } from "./Chunk";
 import type { Vec3 } from "vec3";
 import { readdirSync } from "fs";
+import ContainerManager from "./ContainerManager";
 
 export default class World {
     readonly server: CrackServer
@@ -12,7 +13,9 @@ export default class World {
     readonly name: string;
     readonly chunks = new Map<string, TChunk>;
     readonly chunksDir: string;
+    readonly worldDir: string;
     readonly isReadOnly: boolean;
+    readonly containers: ContainerManager;
 
     constructor(server: CrackServer, worldDir: string) {
         const level: LevelData = require(path.join(worldDir, "level.json"));
@@ -24,8 +27,12 @@ export default class World {
             level: { get() { return level } },
             name: { get() { return level.name } },
             chunksDir: { get() { return chunksDir } },
-            isReadOnly: { get() { return readonly } }
+            isReadOnly: { get() { return readonly } },
+            worldDir: { get() { return worldDir } },
         });
+
+        const containers = new ContainerManager(server, this);
+        Object.defineProperty(this, "containers", { get() { return containers } });
 
         const chunks = readdirSync(chunksDir).map(e => Array.from(e.match(/-?\d+(\.\d+)?/g)).map(parseFloat));
 

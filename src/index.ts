@@ -60,6 +60,18 @@ class CrackServer {
         this.events.get(name).add(func);
     };
 
+    registerPlugin(plugin: any) {
+        try {
+            
+        } catch (err) {
+            console.error(err);
+
+            return false;
+        } finally {
+            return true;
+        }
+    };
+
     private registerPacketHandler() {
         const handlePlayerPacket = (client: Protocol.ServerClient) => {
             const plr = this.players.set(client.uuid, new Player(this, client as any)).get(client.uuid);
