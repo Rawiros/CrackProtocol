@@ -1,42 +1,43 @@
 {
-  "name": "crackprotocol",
-  "version": "1.0.0",
-  "author": "Rawir",
-  "license": "MIT",
-  "private": true,
-  "engines": {
-    "node": ">=18.16.0"
-  },
-  "scripts": {
-    "start": "ts-node --transpile-only -r tsconfig-paths/register  ./start.ts",
-    "start:dev": "nodemon --transpile-only -r tsconfig-paths/register ./start.ts",
-    "get:map": "ts-node --transpile-only -r tsconfig-paths/register  ./src/tests/map_downloader.ts",
-    "generate:packets": "ts-node --transpile-only -r tsconfig-paths/register  ./src/tests/function_generator.ts"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Rawiros/CrackProtocol.git"
-  },
-  "bugs": {
-    "url": "https://github.com/Rawiros/CrackProtocol/issues"
-  },
-  "dependencies": {
-    "minecraft-data": "^3.45.0",
-    "minecraft-protocol": "^1.44.0",
-    "prismarine-block": "^1.17.1",
-    "prismarine-chunk": "^1.35.0",
-    "prismarine-item": "^1.14.0",
-    "prismarine-provider-anvil": "^2.7.0",
-    "prismarine-registry": "^1.7.0",
-    "prismarine-windows": "^2.8.0",
-    "tslog": "^3.3.4",
-    "utility": "github:Rawiros/utility",
-    "vec3": "^0.1.8"
-  },
-  "devDependencies": {
-    "@types/node": "^18.17.15",
-    "ts-node": "^10.9.1",
-    "tsconfig-paths": "^4.2.0",
-    "typescript": "^4.9.5"
-  }
+	"name": "crack-protocol",
+	"author": "Rawir",
+	"license": "MIT",
+	"private": true,
+	"engines": {
+		"node": ">=18.16.0"
+	},
+	"scripts": {
+		"start": "ts-node --transpile-only ./tests/server-start.ts",
+		"start-dev": "nodemon --transpile-only ./tests/server-start.ts"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Rawiros/CrackProtocol.git"
+	},
+	"bugs": {
+		"url": "https://github.com/Rawiros/CrackProtocol/issues"
+	},
+	"dependencies": {
+		"minecraft-data": "^3.59.2",
+		"minecraft-protocol": "^1.45.0",
+		"prismarine-block": "^1.17.1",
+		"prismarine-chunk": "^1.35.0",
+		"prismarine-item": "^1.14.0",
+		"prismarine-nbt": "^2.5.0",
+		"prismarine-provider-anvil": "^2.7.0",
+		"prismarine-registry": "^1.7.0",
+		"prismarine-windows": "^2.8.0",
+		"tslog": "3.3.4",
+		"utility": "github:Rawiros/utility",
+		"uuid": "^9.0.1",
+		"vec2": "^1.6.1",
+		"vec3": "^0.1.10"
+	},
+	"devDependencies": {
+		"@types/filesystem": "^0.0.35",
+		"@types/node": "^20.11.0",
+		"@types/uuid": "^9.0.7",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.3.3"
+	}
 }
